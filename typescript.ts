@@ -156,16 +156,23 @@ allPerson.push(personA);
 allPerson.push(personB);
 console.log(allPerson);
 
+//VD
 interface UserInfo {
-    (words: string): void;
+    (words: string): string;
     name: string;
 }
 
-// const user: UserInfo = {
-//     name: 'duong',
-//     (words: string) : void {
-//     console.log(`${this.name} say ${words}`);
-// }
+const userInfo: UserInfo = Object.assign(
+    function (words: string) {
+        return words;
+    }, {
+    name: 'duong'
+});
+
+function anything(user: UserInfo) {
+    console.log(`${user.name} ... said ${user('hello')}`);
+}
+anything(userInfo);
 
 /**
  * Class
@@ -325,7 +332,7 @@ const rs4: numberResource = {
 /**
  * Generics Class: Lớp chung là một cách để nói rằng một kiểu cụ thể phụ thuộc vào kiểu khác. 
 */
-class GenericNumber<T> {
+class GenericNumber<T extends number> {
     zeroValue: T;
     constructor(z: T) {
         this.zeroValue = z;
@@ -345,24 +352,26 @@ let myGenericNumber = new GenericNumber<number>(0);
 console.log(myGenericNumber.add(1, 2));
 
 //VD  
-type ObjectArrString = Array<{ name: string }>;
-interface ListPerson<T extends ObjectArrString> {
+type ObjectArrName = Array<{ name: string }>;
+interface ListPerson<T extends ObjectArrName> {
+    listPer: T[];
     add: (items: T) => void;
     get: () => T
 }
 
-const lp: ListPerson<ObjectArrString & { age: number }[]> = {
-    add: (items: ObjectArrString & { age: number }[]) => {
-        console.log(items);
-    },
-    get: () => [
-        { name: 'person', age: 12 }
-    ]
-}
-lp.add([
-    { name: 'duong', age: 12 },
-    { name: 'huong', age: 15 }
-]);
+// const lp: ListPerson<ObjectArrName & { age: number }[]> = {
+//     listPer: [],
+//     add: function (items: ObjectArrName & { age: number }[]): void {
+//         console.log(items);
+//         this.listPer = items;
+//     },
+//     get: () => this.listPer
+// }
+// lp.add([
+//     { name: 'duong', age: 12 },
+//     { name: 'huong', age: 15 }
+// ]);
+// console.log(lp.get())
 
 /**
  * Ví dụ, đây là một ngăn kéo có thể chứa bất kỳ loại đối tượng nào, nhưng chỉ có một loại
@@ -396,21 +405,43 @@ tshirtDrawer.add({ size: "m" });
 const mixedDrawer = new Drawer<Sock | TShirt>();
 
 /**
- * promise
- * axois
- * key: value
- *
+ * Generic Literals: ([key:string] : number)
+ * Với key động, có thể thay đổi mà number giữ nguyên
+*/
+interface Std {
+    class: string;
+    school: string;
+}
+function StudentInfo(std: Std) {
+    return {
+        [std.class]: '12A1',
+        [std.school]: 'YenLac2'
+    }
+}
+
+console.log(StudentInfo({ class: 'LopHoc', school: 'TruongHoc' }));
+
+//vd
+// const foo = {
+//     "hello": 'duong'
+// };
+// function translate(input: keyof typeof foo): string {
+//     return foo[input];
+// }
+// console.log(translate('hello'));
+
+/**
+ * promise, async await
+ * Promise<T> T là kiểu dữ liệu trả về của Promise
  */
-// class Person{
-//     name: string
-//     greet:Promise<string>
-//     children: Promise<Person[]>
-// }
-// const nguoi = new Person()//grapSql
-// async function mau({name, greet, children}) {
-//     greet = await greet;
-//     children = await children;
-//     return {
-//         name, greet, children
-//     }
-// }
+function test(arg: string): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+        if (arg === "a") {
+            resolve(1);
+        } else {
+            reject("1");
+        }
+    });
+}
+
+
