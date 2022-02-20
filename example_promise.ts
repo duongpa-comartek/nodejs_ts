@@ -1,47 +1,3 @@
-// class Person {
-//     name: string;
-//     greet?: Promise<string>;
-//     child?: Promise<Person[]>;
-//     constructor(name: string) {
-//         this.name = name;
-//     }
-// }
-
-// const getGreet = <T>(val: T): Promise<string> => {
-//     return Promise.resolve(`Hello. I'm ${val}`);
-// };
-
-// //Tạo các per-child
-// const user = new Person('per');
-// const children1 = new Person('child1');
-// const children2 = new Person('child2');
-
-// //Thêm greet cho pp
-// user.greet = getGreet(user.name);
-// children1.greet = getGreet(children1.name);
-// children2.greet = getGreet(children2.name);
-
-// //Để child1,2 là con của user
-// user.child = new Promise((res, rej) => {
-//     res([children1, children2]);
-// });
-
-// async function readAll(person: Person) {
-//     try {
-//         const user = await Promise.all([person.greet, person.child])
-//             .then((data) => {
-//                 let [greet, child] = data;
-//                 //Chào với person bố
-//                 console.log(greet);
-//                 //lặp lại với các con
-//                 child?.forEach(e => readAll(e));
-//             });
-//     } catch (e) {
-//         console.error(e);
-//     }
-// }
-// readAll(user);
-
 class Person {
     name: string;
     greeting: Promise<string>;
@@ -61,53 +17,93 @@ const per1 = new Person("p1");
 const per1_1 = new Person("p1_1");
 const per1_2 = new Person("p1_2");
 
+const per1_1_1 = new Person("p1_1_1");
+const per1_1_2 = new Person("p1_1_2");
+
+const per1_2_1 = new Person("p1_2_1");
+
+
+const per1_1_1_1 = new Person("p1_1_1_1");
+
 per1.children.push(per1_1);
 per1.children.push(per1_2);
 
-class Info {
+per1_1.children.push(per1_1_1);
+per1_1.children.push(per1_1_2);
+per1_2.children.push(per1_2_1);
+
+per1_1_1.children.push(per1_1_1_1);
+
+class Per {
     name: string;
     greet: string;
-    child: string;
-    constructor(name: string, greet: string, child: string) {
+    children: Per[];
+    constructor(name: string, greet: string, children: Per[]) {
         this.name = name;
         this.greet = greet;
-        this.child = child;
+        this.children = children;
     }
 }
 
 const todoFunction = async (person: Person): Promise<string> => {
     const greet = await person.greeting.then(data => data);
-    let child: string = '';
-    const map = person.children.map(e => todoFunction(e));
-    for (let i = 0; i < map.length; i++) {
-        const info = await map[i];
-        child = child.concat(info);
+    const listPromise = person.children.map(e => {
+        return todoFunction(e)
+    });
+    const info = await Promise.all(listPromise);
+    let child: Per[] = [];
+    info.forEach(e => child.push(JSON.parse(e)));
+    const result = {
+        name: person.name,
+        greet: greet,
+        children: child
     }
-    const p = new Info(person.name, greet, child);
-    return Promise.resolve(JSON.stringify(p));
+    return JSON.stringify(result, null, 2);
+}
+
+interface P {
+    name: string,
+    greet: string
+}
+
+function format<T extends P & { children: T[] }>(data: T): T {
+    if (!data.children.length) {
+        return {
+            ...data,
+            children: []
+        }
+    }
+    return {
+        ...data,
+        children: data.children.map(e => format(e as T))
+    }
 }
 
 todoFunction(per1).then(result => {
-    // result must be
-    /**
-     * {
-     *      name: 'p1',
-     *      greeting: 'My name is p1',
-     *      children: [
-     *          {
-     *              name: 'p1_1',
-     *              greeting: 'My name is p1_1',
-     *              children: []
-     *          },
-     *          {
-     *              name: 'p1_2',
-     *              greeting: 'My name is p1_2',
-     *              children: []
-     *          }
-     *      ]
-     * }
-     */
-    console.log(result);
+    console.log(format(JSON.parse(result)));
+    console.log(JSON.parse(result));
 });
 
+
+
 todoFunction(per1);
+
+// result must be
+/**
+ * {
+ *      name: 'p1',
+ *      greeting: 'My name is p1',
+ *      children: [
+ *          {
+ *              name: 'p1_1',
+ *              greeting: 'My name is p1_1',
+ *              children: []
+ *          },
+ *          {
+ *              name: 'p1_2',
+ *              greeting: 'My name is p1_2',
+ *              children: []
+ *          }
+ *      ]
+ * }
+ */
